@@ -1,0 +1,106 @@
+// SQLite para desenvolvimento. Para produção, troque o provider para "postgresql"
+// e ajuste DATABASE_URL — o restante do schema funciona igual.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("FUNCIONARIO") // GERENTE | FUNCIONARIO
+  active        Boolean  @default(true)
+  signaturePath String?
+  createdAt     DateTime @default(now())
+  laudos        Laudo[]
+}
+
+model Laudo {
+  id        String   @id @default(cuid())
+  status    String   @default("RASCUNHO") // RASCUNHO | FINALIZADO
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Ficha técnica
+  artista    String @default("")
+  titulo     String @default("")
+  dataObra   String @default("")
+  material   String @default("")
+  dimensoes  String @default("")
+  colecao    String @default("")
+  exposicao  String @default("")
+
+  // Estado e exame
+  estado      String @default("") // GOOD | FAIR | SEVERE
+  comentarios String @default("")
+  local       String @default("")
+  dataExame   String @default("") // yyyy-mm-dd
+  examinador  String @default("")
+
+  // Fotos fixas
+  fotoPrincipal String?
+  fotoFrente    String?
+  fotoVerso     String?
+  fotoDanos     String?
+
+  embalagemOutros String @default("")
+
+  fotos      Foto[]
+  danos      LaudoDano[]
+  embalagens LaudoEmbalagem[]
+}
+
+model Foto {
+  id      String @id @default(cuid())
+  laudoId String
+  laudo   Laudo  @relation(fields: [laudoId], references: [id], onDelete: Cascade)
+  tipo    String // DETALHE | EMBALAGEM
+  path    String
+  legenda String @default("")
+  ordem   Int    @default(0)
+}
+
+model DanoTermo {
+  id     String      @id @default(cuid())
+  numero Int
+  pt     String
+  en     String
+  ativo  Boolean     @default(true)
+  laudos LaudoDano[]
+}
+
+model LaudoDano {
+  laudoId String
+  termoId String
+  laudo   Laudo     @relation(fields: [laudoId], references: [id], onDelete: Cascade)
+  termo   DanoTermo @relation(fields: [termoId], references: [id], onDelete: Cascade)
+
+  @@id([laudoId, termoId])
+}
+
+model EmbalagemItem {
+  id     String           @id @default(cuid())
+  pt     String
+  en     String
+  grupo  Int              @default(1) // coluna/grupo no PDF
+  ordem  Int              @default(0)
+  ativo  Boolean          @default(true)
+  laudos LaudoEmbalagem[]
+}
+
+model LaudoEmbalagem {
+  laudoId String
+  itemId  String
+  laudo   Laudo         @relation(fields: [laudoId], references: [id], onDelete: Cascade)
+  item    EmbalagemItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([laudoId, itemId])
+}

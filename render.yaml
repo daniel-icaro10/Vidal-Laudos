@@ -1,0 +1,22 @@
+# Blueprint do Render: New + > Blueprint > selecione este repositório.
+services:
+  - type: web
+    name: vidal-laudos
+    runtime: docker
+    plan: free
+    healthCheckPath: /login
+    envVars:
+      - key: AUTH_SECRET
+        generateValue: true
+      # Senha dos usuários iniciais (gerente@vidal.com e funcionario@vidal.com)
+      - key: SEED_PASSWORD
+        sync: false
+      # Popula o painel com laudos fictícios para a apresentação
+      - key: DEMO_DATA
+        value: "true"
+    # No plano free o disco é temporário: banco e fotos são recriados a cada deploy/reinício.
+    # Para guardar os dados, use um plano pago e descomente o disco abaixo.
+    # disk:
+    #   name: dados
+    #   mountPath: /app/data
+    #   sizeGB: 1

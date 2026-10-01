@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* Paleta e efeitos inspirados no dashboard de referência (Elera) */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Acento verde-limão */
+  --color-brand-50: #e8f6e3;
+  --color-brand-100: #e4f7c6;
+  --color-brand-200: #c7e7bd;
+  --color-brand-300: #a6df9a;
+  --color-brand-400: #8fdc82;
+  --color-brand-500: #7cd56e;
+  --color-brand-600: #239b44;
+  --color-brand-700: #24a450;
+  --color-brand-900: #173812;
+
+  /* Neutros quentes */
+  --color-canvas: #f6f5f3;
+  --color-ink: #171a17;
+  --color-graphite: #424242;
+  --color-chip: #35343b;
+  --color-muted: #787979;
+  --color-soft: #5c5e63;
+  --color-stroke: #e2e3e3;
+  --color-subtle: #eeedeb;
+  --color-hover: #e6e5e3;
+
+  --shadow-card: 0 1px 1px rgba(0, 0, 0, 0.06), 0 3px 3px rgba(0, 0, 0, 0.06), 0 6px 6px rgba(0, 0, 0, 0.06), 0 12px 12px rgba(0, 0, 0, 0.04), 0 24px 24px rgba(0, 0, 0, 0.04);
+  --ease-press: cubic-bezier(0.2, 0, 0, 1);
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-brand-100);
+}
+
+/* Efeito "aperto" de todos os botões, como na referência */
+button,
+[class*="btn"] {
+  transition:
+    transform 0.15s var(--ease-press),
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out,
+    color 0.15s ease-out,
+    opacity 0.15s ease-out;
+}
+button:active:not(:disabled),
+[class*="btn"]:active {
+  transform: scale(0.96);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+@utility input {
+  @apply w-full rounded-xl border border-[#d2d2d2] bg-white px-3 py-2 text-[13px] text-ink outline-none transition placeholder:text-muted hover:border-[#c4c4c4] focus:border-graphite focus:ring-4 focus:ring-graphite/5 disabled:cursor-not-allowed disabled:bg-subtle/60 disabled:text-muted;
+}
+@utility label {
+  @apply mb-1.5 block truncate text-[12.5px] font-medium tracking-[-0.13px] text-muted;
+}
+@utility btn {
+  @apply inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-[10px] px-[15px] py-2 text-[12.5px] font-medium tracking-[-0.13px] disabled:pointer-events-none disabled:opacity-45;
+}
+@utility btn-primary {
+  @apply btn bg-brand-500 text-brand-900 hover:bg-[#76ca68];
+}
+@utility btn-dark {
+  @apply btn bg-graphite text-white hover:bg-[#303030];
+}
+@utility btn-secondary {
+  @apply btn border border-[#dedfdb] bg-white text-soft hover:bg-[#f5f5f2] hover:text-ink;
+}
+@utility btn-ghost {
+  @apply btn text-soft hover:bg-hover hover:text-ink;
+}
+@utility btn-danger {
+  @apply btn border border-[#f3d3cd] bg-white text-[#e0503c] hover:bg-[#fcebe7];
+}
+@utility icon-btn {
+  @apply grid h-8 w-8 place-items-center rounded-xl bg-subtle text-ink hover:bg-hover;
+}
+@utility card {
+  @apply rounded-[20px] bg-white shadow-card;
+}
+/* Bloco de ícone grafite com brilho interno */
+@utility icon-chip {
+  @apply grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-chip text-white opacity-90 shadow-[inset_0_0_6px_1px_rgba(255,255,255,0.565)];
+}
+@utility pill {
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] leading-[14px] whitespace-nowrap;
+}
+@utility count {
+  @apply inline-flex h-4 min-w-[18px] items-center justify-center rounded px-1 text-[11px] leading-4 text-soft bg-stroke;
+}
