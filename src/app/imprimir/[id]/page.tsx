@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { getLaudoOr404, nomeLaudo } from "@/lib/laudos";
@@ -11,11 +11,12 @@ import "./print.css";
 
 export const metadata: Metadata = { title: "Laudo de conservação" };
 
-// Fontes servidas pelo próprio app: o PDF sai igual em qualquer servidor.
-const serif = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-serif" });
-const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--f-sans" });
+// Fonte servida pelo próprio app: o PDF sai igual em qualquer servidor.
+const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--f-sans" });
 
 const FOTOS_POR_PAGINA = 6;
+// Com muitos danos marcados, o glossário vai para uma página própria.
+const MAX_DANOS_COM_GLOSSARIO = 8;
 
 function chunk<T>(arr: T[], n: number) {
   const out: T[][] = [];
@@ -23,68 +24,115 @@ function chunk<T>(arr: T[], n: number) {
   return out;
 }
 
-const dois = (n: number) => String(n).padStart(2, "0");
+function dataCurta(iso: string) {
+  const [y, m, d] = iso.split("-");
+  return y && m && d ? `${d}/${m}/${y}` : "—";
+}
 
-function Timbre({ obra }: { obra?: string }) {
+/** Rótulo bilíngue usado nas células de cabeçalho das tabelas. */
+function Rot({ pt, en }: { pt: string; en: string }) {
   return (
     <>
-      <header className="timbre">
-        <img className="logo" src="/logo.png" alt="Flavia Vidal — Conservação e restauro" />
-        <div className="tit">
-          <div className="empresa">{EMPRESA.razaoSocial}</div>
-          <div className="pt">{EMPRESA.tituloPt}</div>
-          <div className="en">{EMPRESA.tituloEn}</div>
-        </div>
-      </header>
-      {obra && (
-        <div className="obra">
-          <span>Obra / Artwork</span>
-          {obra}
-        </div>
-      )}
+      {pt} <span className="en">/ {en}</span>
     </>
   );
 }
 
-function Rodape({ numero, total }: { numero: number; total: number }) {
+function Check({ on }: { on: boolean }) {
+  return <span className={`cb${on ? " on" : ""}`}>{on ? "X" : ""}</span>;
+}
+
+type Cab = { codigo: string; data: string; obra: string };
+
+function Cabecalho({ cab, numero, total }: { cab: Cab; numero: number; total: number }) {
+  return (
+    <table className="cab">
+      <tbody>
+        <tr>
+          <td rowSpan={3} className="logo"><img src="/logo.png" alt="Flavia Vidal — Conservação e restauro" /></td>
+          <td colSpan={3} className="tit">
+            <div className="empresa">{EMPRESA.razaoSocial}</div>
+            <div className="pt">{EMPRESA.tituloPt}</div>
+            <div className="en">{EMPRESA.tituloEn}</div>
+          </td>
+        </tr>
+        <tr className="meta">
+          <td><div className="k"><Rot pt="Código" en="Ref." /></div>{cab.codigo}</td>
+          <td><div className="k"><Rot pt="Data do exame" en="Date" /></div>{cab.data}</td>
+          <td><div className="k"><Rot pt="Página" en="Page" /></div>{numero} de {total}</td>
+        </tr>
+        <tr className="meta">
+          <td colSpan={3}><div className="k"><Rot pt="Obra" en="Artwork" /></div>{cab.obra}</td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function Rodape() {
   return (
     <footer className="rodape">
-      <div className="dados">
-        <div>{EMPRESA.rodape1}</div>
-        <div>
-          {EMPRESA.rodape2} <a href={`https://${EMPRESA.site}`}>{EMPRESA.site}</a>
-        </div>
+      <div>
+        <b>{EMPRESA.rodape1}</b> · {EMPRESA.site}
+        <br />
+        {EMPRESA.rodape2.replace(/\s*-\s*$/, "")}
       </div>
-      <div className="num">
-        {dois(numero)}<span> / {dois(total)}</span>
-      </div>
+      <div className="slogan">{EMPRESA.slogan}</div>
     </footer>
   );
 }
 
 function Secao({ n, pt, en }: { n: number; pt: string; en: string }) {
   return (
-    <h2 className="secao">
-      <span className="n">{dois(n)}</span>
-      <span className="pt">{pt}</span>
-      <span className="en">{en}</span>
-    </h2>
+    <div className="secao">
+      {n}. {pt} <span>/ {en}</span>
+    </div>
   );
 }
 
-function Check({ on }: { on: boolean }) {
-  return <span className={`cb${on ? " on" : ""}`} aria-label={on ? "marcado" : "não marcado"} />;
+type FotoItem = { id: string; src: string; legenda: string; n: number };
+
+function GradeFotos({ fotos, linhas }: { fotos: FotoItem[]; linhas: number }) {
+  // Completa a grade com células vazias para manter as linhas alinhadas.
+  const cel: (FotoItem | null)[] = [...fotos];
+  while (cel.length % 2) cel.push(null);
+  return (
+    <div className="grade" style={{ gridTemplateRows: `repeat(${Math.max(linhas, 1)}, 1fr)` }}>
+      {cel.map((f, i) =>
+        f ? (
+          <figure key={f.id}>
+            <div className="img"><img src={f.src} alt={f.legenda} /></div>
+            <figcaption><b>Fig. {f.n}</b>{f.legenda && ` — ${f.legenda}`}</figcaption>
+          </figure>
+        ) : (
+          <figure key={`v${i}`} className="vazia" />
+        ),
+      )}
+    </div>
+  );
 }
 
-function Figura({ src, legenda, n }: { src: string; legenda: string; n: number }) {
+function Glossario({ termos, marcados }: { termos: { id: string; numero: number; pt: string; en: string }[]; marcados: Set<string> }) {
+  const terco = Math.ceil(termos.length / 3);
+  const colunas = [termos.slice(0, terco), termos.slice(terco, terco * 2), termos.slice(terco * 2)];
   return (
-    <figure>
-      <div className="quadro"><img src={src} alt={legenda} /></div>
-      <figcaption>
-        <span className="fig">Fig. {dois(n)}</span>
-        {legenda}
-      </figcaption>
-    </figure>
+    <table className="tab glossario">
+      <tbody>
+        {Array.from({ length: terco }, (_, r) => (
+          <tr key={r}>
+            {colunas.map((col, c) => {
+              const t = col[r];
+              if (!t) return <td key={c} colSpan={2} />;
+              const on = marcados.has(t.id);
+              return [
+                <td key={`${c}n`} className={`n${on ? " on" : ""}`}>{t.numero}</td>,
+                <td key={`${c}t`} className={on ? "on" : ""}>{t.pt} <span className="en">/ {t.en}</span></td>,
+              ];
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -98,23 +146,25 @@ export default async function ImprimirLaudo({ params }: { params: Promise<{ id: 
     prisma.embalagemItem.findMany({ where: { OR: [{ ativo: true }, { laudos: { some: { laudoId: id } } }] }, orderBy: [{ grupo: "asc" }, { ordem: "asc" }] }),
   ]);
 
-  const obra = nomeLaudo(laudo);
+  const cab: Cab = {
+    codigo: laudo.id.slice(-8).toUpperCase(),
+    data: dataCurta(laudo.dataExame),
+    obra: nomeLaudo(laudo),
+  };
   const danos = new Set(laudo.danos.map((d) => d.termoId));
   const emb = new Set(laudo.embalagens.map((e) => e.itemId));
-  const detalhes = laudo.fotos.filter((f) => f.tipo === "DETALHE");
-  const fotosEmb = laudo.fotos.filter((f) => f.tipo === "EMBALAGEM");
+  const marcados = termos.filter((t) => danos.has(t.id));
   const fotoDanos = fileUrl(laudo.fotoDanos ?? laudo.fotoPrincipal);
   const assinatura = fileUrl(laudo.author.signaturePath);
-  const marcados = termos.filter((t) => danos.has(t.id));
 
-  const terco = Math.ceil(termos.length / 3);
-  const colunas = [termos.slice(0, terco), termos.slice(terco, terco * 2), termos.slice(terco * 2)];
+  let fig = 0;
+  const comoFoto = (f: { id: string; path: string; legenda: string }): FotoItem => ({ id: f.id, src: fileUrl(f.path)!, legenda: f.legenda, n: ++fig });
 
   const ficha: [string, string, string, boolean?][] = [
     ["Artista", "Artist", laudo.artista],
     ["Título", "Title", laudo.titulo, true],
     ["Data", "Date", laudo.dataObra],
-    ["Material", "Medium", laudo.material],
+    ["Técnica / material", "Medium", laudo.material],
     ["Dimensões", "Dimensions", laudo.dimensoes],
     ["Coleção", "Collection", laudo.colecao],
     ["Exposição", "Exhibition", laudo.exposicao],
@@ -122,68 +172,91 @@ export default async function ImprimirLaudo({ params }: { params: Promise<{ id: 
 
   // As seções são numeradas na ordem em que aparecem (frente/verso e detalhes são opcionais).
   let sec = 0;
-  let fig = 0;
-  const paginas: { key: string; capa?: boolean; conteudo: React.ReactNode }[] = [];
+  const paginas: { key: string; conteudo: React.ReactNode }[] = [];
 
-  const secIdent = ++sec;
-  const secEstado = ++sec;
-  const secExame = ++sec;
   paginas.push({
     key: "capa",
-    capa: true,
     conteudo: (
       <>
-        <Secao n={secIdent} pt="Identificação da obra" en="Artwork identification" />
-        <div className="ficha">
-          <dl>
-            {ficha.map(([pt, en, v, italico]) => (
-              <div key={pt} className="campo">
-                <dt>{pt} <span>/ {en}</span></dt>
-                <dd>{v ? (italico ? <i>{v}</i> : v) : "—"}</dd>
-              </div>
+        <Secao n={++sec} pt="Identificação da obra" en="Artwork identification" />
+        <table className="tab ficha">
+          <tbody>
+            {ficha.map(([pt, en, v, italico], i) => (
+              <tr key={pt}>
+                <th><Rot pt={pt} en={en} /></th>
+                <td>{v ? (italico ? <i>{v}</i> : v) : "—"}</td>
+                {i === 0 && (
+                  <td rowSpan={ficha.length} className="foto">
+                    {laudo.fotoPrincipal ? <img src={fileUrl(laudo.fotoPrincipal)!} alt="" /> : <span>Sem foto / No image</span>}
+                  </td>
+                )}
+              </tr>
             ))}
-          </dl>
-          <div className="foto">
-            {laudo.fotoPrincipal ? <img src={fileUrl(laudo.fotoPrincipal)!} alt="" /> : <span>Sem foto</span>}
-          </div>
-        </div>
+          </tbody>
+        </table>
 
-        <Secao n={secEstado} pt="Estado de conservação" en="Condition" />
-        <div className="estado">
-          {ESTADOS.map((e) => (
-            <div key={e.value} className={`opcao${laudo.estado === e.value ? " on" : ""}`}>
-              <Check on={laudo.estado === e.value} />
-              <span>{e.pt} <i>/ {e.label}</i></span>
-            </div>
-          ))}
-        </div>
-        <div className="comentarios">
-          <div className="rot">Observações <span>/ Additional comments</span></div>
+        <Secao n={++sec} pt="Estado de conservação" en="Condition" />
+        <table className="tab estado">
+          <tbody>
+            <tr>
+              {ESTADOS.map((e) => (
+                <td key={e.value} className={laudo.estado === e.value ? "on" : ""}>
+                  <Check on={laudo.estado === e.value} /> {e.pt} <span className="en">/ {e.label}</span>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+        <div className="obs">
+          <div className="k"><Rot pt="Observações" en="Additional comments" /></div>
           <p>{laudo.comentarios || "—"}</p>
         </div>
 
-        <Secao n={secExame} pt="Exame" en="Examination" />
-        <div className="exame">
-          <div><div className="rot">Local <span>/ Location</span></div>{laudo.local || "—"}</div>
-          <div><div className="rot">Data <span>/ Date</span></div>{formatDataExtenso(laudo.dataExame) || "—"}</div>
-          <div><div className="rot">Examinado por <span>/ Examiner</span></div>{laudo.examinador || "—"}</div>
-        </div>
+        <Secao n={++sec} pt="Exame" en="Examination" />
+        <table className="tab exame">
+          <thead>
+            <tr>
+              <th><Rot pt="Local" en="Location" /></th>
+              <th><Rot pt="Data" en="Date" /></th>
+              <th><Rot pt="Examinado por" en="Examiner" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{laudo.local || "—"}</td>
+              <td>{formatDataExtenso(laudo.dataExame) || "—"}</td>
+              <td>{laudo.examinador || "—"}</td>
+            </tr>
+          </tbody>
+        </table>
 
-        <div className="assin">
-          <div>
-            <div className="lin">{assinatura && <img src={assinatura} alt="Assinatura" />}</div>
-            <div className="cap">Conservador <span>/ Artwork conservation</span></div>
-          </div>
-          <div>
-            <div className="lin" />
-            <div className="cap">Coleção <span>/ Collection</span></div>
-          </div>
-        </div>
+        <Secao n={++sec} pt="Assinaturas" en="Signatures" />
+        <table className="tab assin">
+          <thead>
+            <tr>
+              <th><Rot pt="Conservador responsável" en="Conservator" /></th>
+              <th><Rot pt="Coleção" en="Collection" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="campo">{assinatura && <img src={assinatura} alt="Assinatura" />}</td>
+              <td className="campo" />
+            </tr>
+            <tr>
+              <td><span className="k">Nome / Name:</span> {laudo.examinador || laudo.author.name}</td>
+              <td><span className="k">Nome / Name:</span></td>
+            </tr>
+          </tbody>
+        </table>
       </>
     ),
   });
 
   if (laudo.fotoFrente || laudo.fotoVerso) {
+    const fotos: FotoItem[] = [];
+    if (laudo.fotoFrente) fotos.push({ id: "frente", src: fileUrl(laudo.fotoFrente)!, legenda: "Frente / Front", n: ++fig });
+    if (laudo.fotoVerso) fotos.push({ id: "verso", src: fileUrl(laudo.fotoVerso)!, legenda: "Verso / Back", n: ++fig });
     const n = ++sec;
     paginas.push({
       key: "fv",
@@ -191,14 +264,19 @@ export default async function ImprimirLaudo({ params }: { params: Promise<{ id: 
         <>
           <Secao n={n} pt="Frente e verso" en="Front and back" />
           <div className="fv">
-            {laudo.fotoFrente && <Figura src={fileUrl(laudo.fotoFrente)!} legenda="Frente / Front" n={++fig} />}
-            {laudo.fotoVerso && <Figura src={fileUrl(laudo.fotoVerso)!} legenda="Verso / Back" n={++fig} />}
+            {fotos.map((f) => (
+              <figure key={f.id}>
+                <div className="img"><img src={f.src} alt={f.legenda} /></div>
+                <figcaption><b>Fig. {f.n}</b> — {f.legenda}</figcaption>
+              </figure>
+            ))}
           </div>
         </>
       ),
     });
   }
 
+  const detalhes = laudo.fotos.filter((f) => f.tipo === "DETALHE").map(comoFoto);
   if (detalhes.length) {
     const n = ++sec;
     chunk(detalhes, FOTOS_POR_PAGINA).forEach((grupo, i) =>
@@ -206,10 +284,8 @@ export default async function ImprimirLaudo({ params }: { params: Promise<{ id: 
         key: `d${i}`,
         conteudo: (
           <>
-            <Secao n={n} pt={`Detalhes${i ? " (cont.)" : ""}`} en="Details" />
-            <div className="grade">
-              {grupo.map((f) => <Figura key={f.id} src={fileUrl(f.path)!} legenda={f.legenda} n={++fig} />)}
-            </div>
+            <Secao n={n} pt={`Fotos de detalhe${i ? " (continuação)" : ""}`} en="Detail photographs" />
+            <GradeFotos fotos={grupo} linhas={3} />
           </>
         ),
       }),
@@ -217,72 +293,107 @@ export default async function ImprimirLaudo({ params }: { params: Promise<{ id: 
   }
 
   const secDanos = ++sec;
+  const glossarioSeparado = marcados.length > MAX_DANOS_COM_GLOSSARIO;
+  const metade = Math.ceil(marcados.length / 2);
   paginas.push({
     key: "danos",
     conteudo: (
       <>
         <Secao n={secDanos} pt="Mapa de danos" en="Damage map" />
-        {fotoDanos && (
-          <div className="danos-foto"><img src={fotoDanos} alt="" /></div>
+        {fotoDanos && <div className={`danos-foto${glossarioSeparado ? " grande" : ""}`}><img src={fotoDanos} alt="" /></div>}
+        <table className="tab marcados">
+          <colgroup><col className="n" /><col /><col className="n" /><col /></colgroup>
+          <thead>
+            <tr>
+              <th colSpan={4}><Rot pt="Danos identificados" en="Identified damage" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            {marcados.length ? (
+              Array.from({ length: metade }, (_, r) => (
+                <tr key={r}>
+                  {[marcados[r], marcados[r + metade]].map((t, c) =>
+                    t ? [
+                      <td key={`${c}n`} className="n">{t.numero}</td>,
+                      <td key={`${c}t`}>{t.pt} <span className="en">/ {t.en}</span></td>,
+                    ] : <td key={c} colSpan={2} />,
+                  )}
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan={4}>Nenhum dano assinalado <span className="en">/ No damage noted</span></td></tr>
+            )}
+          </tbody>
+        </table>
+        {!glossarioSeparado && (
+          <>
+            <div className="sub"><Rot pt="Glossário de referência" en="Reference glossary" /></div>
+            <Glossario termos={termos} marcados={danos} />
+          </>
         )}
-        <div className="marcados">
-          <div className="rot">Danos identificados <span>/ Identified damage</span></div>
-          {marcados.length ? (
-            <ul>
-              {marcados.map((t) => (
-                <li key={t.id}><b>{t.numero}</b> {t.pt} <i>/ {t.en}</i></li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nenhum dano assinalado / No damage noted</p>
-          )}
-        </div>
-        <div className="rot glossario-tit">Glossário <span>/ Glossary</span></div>
-        <div className="glossario">
-          {colunas.map((col, i) => (
-            <div key={i}>
-              {col.map((t) => (
-                <div key={t.id} className={`t${danos.has(t.id) ? " on" : ""}`}>
-                  <span className="n">{t.numero}</span>{t.pt} <i>/ {t.en}</i>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
       </>
     ),
   });
+  if (glossarioSeparado) {
+    paginas.push({
+      key: "glossario",
+      conteudo: (
+        <>
+          <Secao n={secDanos} pt="Mapa de danos (continuação)" en="Damage map" />
+          <div className="sub"><Rot pt="Glossário de referência" en="Reference glossary" /></div>
+          <Glossario termos={termos} marcados={danos} />
+        </>
+      ),
+    });
+  }
 
+  const fotosEmb = laudo.fotos.filter((f) => f.tipo === "EMBALAGEM").map(comoFoto);
   const secEmb = ++sec;
+  const grupos = [1, 2].map((g) => itens.filter((it) => it.grupo === g));
+  const linhasChecklist = Math.max(grupos[0].length, grupos[1].length + 1);
   paginas.push({
     key: "emb",
     conteudo: (
       <>
         <Secao n={secEmb} pt="Embalagem" en="Packing" />
         {fotosEmb.length > 0 && (
-          <div className={`emb-fotos${fotosEmb.length === 1 ? " uma" : ""}`}>
-            {fotosEmb.slice(0, 2).map((f) => <Figura key={f.id} src={fileUrl(f.path)!} legenda={f.legenda} n={++fig} />)}
+          <div className="emb-fotos">
+            <GradeFotos fotos={fotosEmb.slice(0, 2)} linhas={1} />
           </div>
         )}
-        <div className="rot checklist-tit">Materiais e condições <span>/ Materials and conditions</span></div>
-        <div className="checklist">
-          {[1, 2].map((g) => (
-            <div key={g}>
-              {itens.filter((it) => it.grupo === g).map((it) => (
-                <div key={it.id} className={emb.has(it.id) ? "on" : ""}>
-                  <Check on={emb.has(it.id)} />
-                  <span>{it.pt}{it.en && <i> / {it.en}</i>}</span>
-                </div>
-              ))}
-              {g === 2 && (
-                <div className={`outros${laudo.embalagemOutros ? " on" : ""}`}>
-                  <Check on={!!laudo.embalagemOutros} />
-                  <span>outros <i>/ others</i>{laudo.embalagemOutros && <b>: {laudo.embalagemOutros}</b>}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <table className="tab checklist">
+          <thead>
+            <tr>
+              <th colSpan={2}><Rot pt="Materiais e condições" en="Materials and conditions" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: linhasChecklist }, (_, r) => (
+              <tr key={r}>
+                {grupos.map((grupo, g) => {
+                  const it = grupo[r];
+                  if (it) {
+                    const on = emb.has(it.id);
+                    return (
+                      <td key={g} className={on ? "on" : ""}>
+                        <Check on={on} /> {it.pt}{it.en && <span className="en"> / {it.en}</span>}
+                      </td>
+                    );
+                  }
+                  if (g === 1 && r === grupo.length) {
+                    const on = !!laudo.embalagemOutros;
+                    return (
+                      <td key={g} className={on ? "on" : ""}>
+                        <Check on={on} /> outros <span className="en">/ others</span>{on && `: ${laudo.embalagemOutros}`}
+                      </td>
+                    );
+                  }
+                  return <td key={g} />;
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </>
     ),
   });
@@ -292,24 +403,21 @@ export default async function ImprimirLaudo({ params }: { params: Promise<{ id: 
       key: `e${i}`,
       conteudo: (
         <>
-          <Secao n={secEmb} pt="Embalagem (cont.)" en="Packing" />
-          <div className="grade">
-            {grupo.map((f) => <Figura key={f.id} src={fileUrl(f.path)!} legenda={f.legenda} n={++fig} />)}
-          </div>
+          <Secao n={secEmb} pt="Embalagem (continuação)" en="Packing" />
+          <GradeFotos fotos={grupo} linhas={3} />
         </>
       ),
     }),
   );
 
   return (
-    <div className={`laudo-doc ${serif.variable} ${sans.variable}`}>
+    <div className={`laudo-doc ${inter.variable}`}>
       <Toolbar id={laudo.id} />
       {paginas.map((p, i) => (
-        <section key={p.key} className={`page${p.capa ? " capa" : ""}`}>
-          <div className="faixa" aria-hidden>{EMPRESA.slogan}</div>
-          <Timbre obra={p.capa ? undefined : obra} />
+        <section key={p.key} className={`page pg-${p.key}`}>
+          <Cabecalho cab={cab} numero={i + 1} total={paginas.length} />
           <div className="corpo">{p.conteudo}</div>
-          <Rodape numero={i + 1} total={paginas.length} />
+          <Rodape />
         </section>
       ))}
     </div>

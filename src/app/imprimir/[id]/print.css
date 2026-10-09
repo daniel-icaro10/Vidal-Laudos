@@ -1,9 +1,9 @@
 .laudo-doc {
-  --tinta: #23211e;
-  --suave: #6f6a63;
-  --bronze: #8c6a43;
-  --linha: #d9d3ca;
-  --papel: #f5f2ec;
+  --tinta: #111;
+  --cinza: #555;
+  --borda: #8a8a8a;
+  --rotulo: #ececec;
+  --barra: #262626;
   font-family: var(--f-sans), Arial, Helvetica, sans-serif;
   color: var(--tinta);
   background: #d6d3d1;
@@ -22,139 +22,112 @@
 }
 .laudo-doc .toolbar .primary { background: #1f1f1f; color: #fff; border-color: #1f1f1f; }
 
-.laudo-doc i { font-style: italic; }
-
-/* ---------- Papel timbrado ---------- */
 .page {
   width: 210mm; height: 297mm; margin: 0 auto 16px; background: #fff;
   position: relative; overflow: hidden; box-sizing: border-box;
-  padding: 11mm 14mm 0 22mm;
+  padding: 11mm 12mm 0;
   box-shadow: 0 2px 10px rgba(0,0,0,.15);
   display: flex; flex-direction: column;
-  font-size: 9.5pt; line-height: 1.4;
+  font-size: 9pt; line-height: 1.35;
 }
-/* Faixa lateral com o slogan */
-.page::before {
-  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 9mm; background: var(--papel);
-}
-.page::after {
-  content: ""; position: absolute; left: 9mm; top: 0; bottom: 0; border-left: 0.35mm solid var(--bronze);
-}
-.faixa {
-  position: absolute; left: 0; width: 9mm; bottom: 21mm; z-index: 1;
-  writing-mode: vertical-rl; transform: rotate(180deg);
-  display: flex; align-items: center; white-space: nowrap;
-  font-size: 6.5pt; letter-spacing: 0.32em; text-transform: uppercase; color: var(--bronze);
-}
+.page table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.page td, .page th { border: 0.25mm solid var(--borda); padding: 1.4mm 2.2mm; vertical-align: middle; text-align: left; }
+.en { font-weight: 400; font-style: italic; color: var(--cinza); text-transform: none; letter-spacing: 0; }
+.k { font-size: 6.8pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #333; }
 
-.timbre {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6mm;
-  padding-bottom: 3.5mm; border-bottom: 0.4mm solid var(--bronze);
-  position: relative;
-}
-.timbre::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.3mm; border-bottom: 0.15mm solid var(--linha); }
-.timbre .logo { height: 21mm; mix-blend-mode: multiply; }
-.timbre .tit { border-left: 0.2mm solid var(--linha); padding-left: 6mm; }
-.timbre .empresa { font-size: 7pt; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--suave); }
-/* Os títulos vêm em caixa alta de EMPRESA; no timbre ficam em caixa de frase. */
-.timbre .pt, .timbre .en { text-transform: lowercase; }
-.timbre .pt::first-letter, .timbre .en::first-letter { text-transform: uppercase; }
-.timbre .pt { font-family: var(--f-serif), Georgia, serif; font-size: 19pt; font-weight: 600; line-height: 1.15; margin-top: 1.2mm; }
-.timbre .en { font-family: var(--f-serif), Georgia, serif; font-size: 13pt; font-style: italic; color: var(--suave); line-height: 1.2; }
-.obra { display: flex; align-items: baseline; justify-content: flex-end; gap: 3mm; margin-top: 3.5mm; font-family: var(--f-serif), Georgia, serif; font-size: 12pt; font-weight: 600; line-height: 1.2; text-align: right; }
-.obra span { flex-shrink: 0; font-family: var(--f-sans), Arial, sans-serif; font-size: 6.5pt; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--bronze); }
+/* ---------- Cabeçalho ---------- */
+.cab { border: 0.4mm solid var(--tinta); }
+.cab td { border-color: var(--borda); }
+.cab .logo { width: 38mm; text-align: center; padding: 1.5mm; border-right: 0.4mm solid var(--tinta); }
+.cab .logo img { height: 24mm; mix-blend-mode: multiply; }
+.cab .tit { padding: 2mm 3mm; }
+.cab .empresa { font-size: 7pt; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cinza); }
+.cab .pt { font-size: 13pt; font-weight: 700; letter-spacing: 0.01em; margin-top: 0.6mm; }
+.cab .tit .en { display: block; font-size: 9.5pt; }
+.cab .meta td { font-size: 9pt; font-weight: 600; padding: 1mm 3mm; }
+.cab .meta .k { font-weight: 500; color: var(--cinza); margin-bottom: 0.2mm; }
+.cab .meta .k .en { font-size: 6.8pt; }
 
+/* ---------- Rodapé ---------- */
 .rodape {
-  height: 19mm; margin-top: auto; flex-shrink: 0; box-sizing: border-box;
+  margin-top: auto; flex-shrink: 0; height: 15mm; box-sizing: border-box;
   display: flex; justify-content: space-between; align-items: center; gap: 6mm;
-  border-top: 0.15mm solid var(--linha);
-  font-size: 7pt; color: var(--suave); line-height: 1.5;
+  border-top: 0.4mm solid var(--tinta);
+  font-size: 6.8pt; color: var(--cinza); line-height: 1.45;
 }
-.rodape a { color: var(--bronze); text-decoration: none; }
-.rodape .num { font-family: var(--f-serif), Georgia, serif; font-size: 15pt; font-weight: 600; color: var(--tinta); white-space: nowrap; }
-.rodape .num span { font-size: 10pt; color: var(--suave); font-weight: 400; }
+.rodape b { color: var(--tinta); font-weight: 600; }
+.rodape .slogan { text-align: right; font-style: italic; white-space: nowrap; flex-shrink: 0; }
 
-.corpo { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-top: 5mm; }
+.corpo { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 4mm 0 4mm; }
 
-/* ---------- Elementos comuns ---------- */
-.secao { display: flex; align-items: baseline; gap: 3mm; margin: 6mm 0 3.5mm; padding-bottom: 1.5mm; border-bottom: 0.15mm solid var(--linha); font-weight: 400; }
+/* ---------- Seções ---------- */
+.secao {
+  background: var(--barra); color: #fff; padding: 1.3mm 2.5mm; margin-top: 4.5mm;
+  font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
 .corpo > .secao:first-child { margin-top: 0; }
-.secao .n { font-family: var(--f-serif), Georgia, serif; font-size: 15pt; font-weight: 600; color: var(--bronze); }
-.secao .pt { font-size: 9pt; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
-.secao .en { font-family: var(--f-serif), Georgia, serif; font-size: 11pt; font-style: italic; color: var(--suave); }
+.secao span { font-weight: 400; font-style: italic; text-transform: none; letter-spacing: 0; color: #cfcfcf; }
+.sub { margin: 3mm 0 1.2mm; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
 
-.rot { font-size: 7pt; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--suave); margin-bottom: 1mm; }
-.rot span { font-weight: 400; letter-spacing: 0.04em; text-transform: none; font-style: italic; }
+.tab th { background: var(--rotulo); font-size: 7.2pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+.tab th .en { font-size: 7pt; }
+.secao + .tab, .secao + .danos-foto { border-top: 0; margin-top: 0; }
 
-.cb { display: inline-block; flex-shrink: 0; width: 3.2mm; height: 3.2mm; border: 0.25mm solid var(--tinta); border-radius: 0.4mm; position: relative; vertical-align: -0.5mm; box-sizing: border-box; }
-.cb.on { background: var(--bronze); border-color: var(--bronze); }
-.cb.on::after { content: ""; position: absolute; left: 0.95mm; top: 0.25mm; width: 0.8mm; height: 1.7mm; border: solid #fff; border-width: 0 0.35mm 0.35mm 0; transform: rotate(45deg); }
-
-figure { margin: 0; display: flex; flex-direction: column; min-height: 0; }
-.quadro { flex: 1; min-height: 0; background: var(--papel); display: flex; align-items: center; justify-content: center; padding: 2mm; box-sizing: border-box; }
-.quadro img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-figcaption { font-size: 8pt; margin-top: 1.5mm; line-height: 1.3; min-height: 3.5mm; }
-figcaption .fig { font-weight: 600; color: var(--bronze); margin-right: 2mm; letter-spacing: 0.04em; }
+.cb {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  width: 3.4mm; height: 3.4mm; border: 0.3mm solid var(--tinta); box-sizing: border-box;
+  font-size: 7pt; font-weight: 700; line-height: 1; margin-right: 1.2mm;
+}
+.on { font-weight: 600; }
+.on .en { font-weight: 400; }
 
 /* ---------- Capa ---------- */
-.ficha { display: grid; grid-template-columns: 1fr 74mm; gap: 7mm; }
-.ficha dl { margin: 0; }
-.ficha .campo { display: grid; grid-template-columns: 40mm 1fr; gap: 3mm; padding: 2.4mm 0; border-bottom: 0.15mm dotted var(--linha); align-items: baseline; }
-.ficha .campo:last-child { border-bottom: 0; }
-.ficha dt { font-size: 7pt; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--suave); }
-.ficha dt span { font-weight: 400; letter-spacing: 0.02em; text-transform: none; font-style: italic; }
-.ficha dd { margin: 0; font-size: 10.5pt; }
-.ficha .foto { height: 76mm; background: var(--papel); display: flex; align-items: center; justify-content: center; padding: 2.5mm; box-sizing: border-box; color: var(--suave); font-size: 8pt; }
-.ficha .foto img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ficha th { width: 40mm; }
+.ficha td { font-size: 10pt; height: 7.4mm; }
+.ficha .foto { width: 68mm; padding: 2mm; text-align: center; vertical-align: middle; font-size: 8pt; color: var(--cinza); }
+.ficha .foto img { max-width: 100%; max-height: 66mm; object-fit: contain; display: block; margin: 0 auto; }
 
-.estado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
-.estado .opcao { display: flex; align-items: center; gap: 2.5mm; padding: 2.5mm 3mm; border: 0.2mm solid var(--linha); border-radius: 1mm; font-size: 10pt; }
-.estado .opcao i { color: var(--suave); }
-.estado .opcao.on { border-color: var(--bronze); background: var(--papel); font-weight: 600; }
-.estado .opcao.on i { font-weight: 400; }
+.estado td { width: 33.33%; font-size: 9.5pt; padding: 2.2mm; }
+.estado td.on { background: var(--rotulo); }
 
-.comentarios { margin-top: 3mm; padding: 3mm 4mm; min-height: 30mm; box-sizing: border-box; background: var(--papel); border-left: 0.6mm solid var(--bronze); }
-.comentarios p { margin: 0; white-space: pre-wrap; font-size: 10pt; }
+.obs { flex: 1; min-height: 26mm; border: 0.25mm solid var(--borda); border-top: 0; padding: 1.8mm 2.2mm; }
+.obs p { margin: 1mm 0 0; white-space: pre-wrap; font-size: 9.5pt; }
 
-.exame { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5mm; font-size: 10.5pt; }
+.exame td { font-size: 9.5pt; padding: 2mm 2.2mm; }
 
-.assin { display: grid; grid-template-columns: 1fr 1fr; gap: 14mm; margin: auto 4mm 6mm; text-align: center; }
-.assin .lin { height: 20mm; border-bottom: 0.25mm solid var(--tinta); display: flex; align-items: flex-end; justify-content: center; }
-.assin .lin img { max-height: 22mm; max-width: 70mm; margin-bottom: -3mm; mix-blend-mode: multiply; }
-.assin .cap { margin-top: 1.8mm; font-size: 8pt; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
-.assin .cap span { font-weight: 400; letter-spacing: 0.02em; text-transform: none; font-style: italic; color: var(--suave); }
+.assin td { width: 50%; }
+.assin .campo { height: 22mm; text-align: center; vertical-align: bottom; padding-bottom: 1mm; }
+.assin .campo img { max-height: 20mm; max-width: 70mm; mix-blend-mode: multiply; }
+.assin .k { margin-right: 1mm; }
 
 /* ---------- Fotos ---------- */
-.fv { flex: 1; min-height: 0; display: grid; grid-template-rows: 1fr 1fr; gap: 5mm; margin-bottom: 5mm; }
-.fv:has(> figure:only-child) { grid-template-rows: 1fr; }
-.grade { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 66mm); gap: 4mm 6mm; }
+figure { margin: 0; display: flex; flex-direction: column; min-height: 0; border: 0.25mm solid var(--borda); }
+figure .img { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 2mm; }
+figure .img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+figcaption { flex-shrink: 0; border-top: 0.25mm solid var(--borda); background: var(--rotulo); padding: 1.2mm 2.2mm; font-size: 8pt; line-height: 1.3; }
+figure.vazia { border-style: dashed; border-color: #ccc; }
+
+.fv { flex: 1; min-height: 0; display: grid; grid-auto-rows: 1fr; gap: 3mm; margin-top: 3mm; }
+.grade { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-top: 3mm; }
 
 /* ---------- Danos ---------- */
-.danos-foto { height: 74mm; background: var(--papel); display: flex; justify-content: center; align-items: center; padding: 2mm; box-sizing: border-box; }
+.danos-foto { height: 64mm; margin-top: 3mm; border: 0.25mm solid var(--borda); display: flex; align-items: center; justify-content: center; padding: 2mm; box-sizing: border-box; }
+.danos-foto.grande { height: 110mm; }
 .danos-foto img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.marcados { margin-top: 4mm; }
-.marcados ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 1.5mm 2mm; }
-.marcados li { border: 0.2mm solid var(--bronze); background: var(--papel); border-radius: 4mm; padding: 0.6mm 3mm 0.6mm 1mm; font-size: 8.5pt; }
-.marcados li b { display: inline-block; min-width: 4.6mm; text-align: center; background: var(--bronze); color: #fff; border-radius: 3mm; padding: 0 1mm; margin-right: 1.2mm; font-size: 7.5pt; }
-.marcados li i, .glossario i { color: var(--suave); }
-.marcados p { margin: 0; font-style: italic; color: var(--suave); }
-.glossario-tit { margin-top: 4mm; }
-.glossario { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 4mm; font-size: 7.6pt; line-height: 1.42; }
-.glossario .t { padding-left: 6mm; text-indent: -6mm; }
-.glossario .n { display: inline-block; width: 6mm; text-indent: 0; color: var(--suave); }
-.glossario .on { font-weight: 600; color: var(--bronze); }
-.glossario .on .n { color: var(--bronze); }
-.glossario .on i { color: var(--bronze); font-weight: 400; }
+.marcados { margin-top: 3mm; }
+.marcados td { font-size: 8.5pt; padding: 1.1mm 2.2mm; }
+.marcados col.n { width: 11mm; }
+.marcados .n, .glossario .n { text-align: center; font-weight: 600; }
+.glossario td { font-size: 7pt; padding: 0.55mm 1.6mm; line-height: 1.25; }
+.glossario .n { width: 7mm; font-weight: 400; color: var(--cinza); }
+.glossario .on { background: var(--rotulo); color: var(--tinta); font-weight: 700; }
 
 /* ---------- Embalagem ---------- */
-.emb-fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; height: 100mm; }
-.emb-fotos.uma { grid-template-columns: 1fr; }
-.checklist-tit { margin-top: 5mm; }
-.checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8mm; font-size: 9pt; }
-.checklist > div > div { display: flex; align-items: center; gap: 2.5mm; padding: 1.1mm 0; border-bottom: 0.15mm dotted var(--linha); }
-.checklist i { color: var(--suave); }
-.checklist .on { font-weight: 600; }
-.checklist .on i { font-weight: 400; }
+.emb-fotos { height: 100mm; display: flex; }
+.emb-fotos .grade { margin-top: 3mm; }
+.checklist { margin-top: 3mm; }
+.checklist td { font-size: 8.5pt; padding: 1.2mm 2.2mm; height: 6mm; }
+.checklist td.on { background: var(--rotulo); }
 
 @media print {
   @page { size: A4; margin: 0; }
