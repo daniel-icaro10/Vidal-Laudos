@@ -1,9 +1,15 @@
 .laudo-doc {
-  --tinta: #111;
-  font-family: Arial, Helvetica, sans-serif;
+  --tinta: #23211e;
+  --suave: #6f6a63;
+  --bronze: #8c6a43;
+  --linha: #d9d3ca;
+  --papel: #f5f2ec;
+  font-family: var(--f-sans), Arial, Helvetica, sans-serif;
   color: var(--tinta);
   background: #d6d3d1;
   padding: 56px 0 24px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .laudo-doc .toolbar {
   position: fixed; inset: 0 0 auto 0; z-index: 10;
@@ -16,82 +22,139 @@
 }
 .laudo-doc .toolbar .primary { background: #1f1f1f; color: #fff; border-color: #1f1f1f; }
 
+.laudo-doc i { font-style: italic; }
+
+/* ---------- Papel timbrado ---------- */
 .page {
   width: 210mm; height: 297mm; margin: 0 auto 16px; background: #fff;
   position: relative; overflow: hidden; box-sizing: border-box;
-  padding: 9mm 12mm 26mm;
+  padding: 11mm 14mm 0 22mm;
   box-shadow: 0 2px 10px rgba(0,0,0,.15);
   display: flex; flex-direction: column;
+  font-size: 9.5pt; line-height: 1.4;
+}
+/* Faixa lateral com o slogan */
+.page::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 9mm; background: var(--papel);
+}
+.page::after {
+  content: ""; position: absolute; left: 9mm; top: 0; bottom: 0; border-left: 0.35mm solid var(--bronze);
+}
+.faixa {
+  position: absolute; left: 0; width: 9mm; bottom: 21mm; z-index: 1;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  display: flex; align-items: center; white-space: nowrap;
+  font-size: 6.5pt; letter-spacing: 0.32em; text-transform: uppercase; color: var(--bronze);
 }
 
-/* Cabeçalho no estilo do modelo: barras pretas laterais e moldura */
-.hdr { display: grid; grid-template-columns: 6mm 45mm 1fr 6mm; height: 40mm; border-top: 0.6mm solid #000; }
-.hdr .bar { background: #000; }
-.hdr .logo { display: flex; align-items: center; justify-content: center; border-bottom: 0.6mm solid #000; padding: 2mm; }
-.hdr .logo img { max-height: 34mm; max-width: 42mm; mix-blend-mode: multiply; }
-.hdr .tit { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 2.5mm; position: relative; }
-.hdr .tit::after { content: ""; position: absolute; right: 0; bottom: 0; width: 45%; border-bottom: 0.6mm solid #000; }
-.hdr .empresa { font-size: 15pt; font-weight: 700; }
-.hdr .pt { font-size: 10.5pt; font-weight: 700; }
-.hdr .en { font-size: 13pt; font-weight: 700; }
-.hdr.capa .pt { font-size: 14pt; }
-.hdr.capa .en { font-size: 12pt; }
+.timbre {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6mm;
+  padding-bottom: 3.5mm; border-bottom: 0.4mm solid var(--bronze);
+  position: relative;
+}
+.timbre::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.3mm; border-bottom: 0.15mm solid var(--linha); }
+.timbre .logo { height: 21mm; mix-blend-mode: multiply; }
+.timbre .tit { border-left: 0.2mm solid var(--linha); padding-left: 6mm; }
+.timbre .empresa { font-size: 7pt; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--suave); }
+/* Os títulos vêm em caixa alta de EMPRESA; no timbre ficam em caixa de frase. */
+.timbre .pt, .timbre .en { text-transform: lowercase; }
+.timbre .pt::first-letter, .timbre .en::first-letter { text-transform: uppercase; }
+.timbre .pt { font-family: var(--f-serif), Georgia, serif; font-size: 19pt; font-weight: 600; line-height: 1.15; margin-top: 1.2mm; }
+.timbre .en { font-family: var(--f-serif), Georgia, serif; font-size: 13pt; font-style: italic; color: var(--suave); line-height: 1.2; }
+.obra { display: flex; align-items: baseline; justify-content: flex-end; gap: 3mm; margin-top: 3.5mm; font-family: var(--f-serif), Georgia, serif; font-size: 12pt; font-weight: 600; line-height: 1.2; text-align: right; }
+.obra span { flex-shrink: 0; font-family: var(--f-sans), Arial, sans-serif; font-size: 6.5pt; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--bronze); }
 
-.selo { align-self: flex-end; margin-top: 3mm; border: 0.4mm solid #000; padding: 1.5mm 6mm; font-weight: 700; font-size: 12pt; min-width: 75mm; text-align: right; }
+.rodape {
+  height: 19mm; margin-top: auto; flex-shrink: 0; box-sizing: border-box;
+  display: flex; justify-content: space-between; align-items: center; gap: 6mm;
+  border-top: 0.15mm solid var(--linha);
+  font-size: 7pt; color: var(--suave); line-height: 1.5;
+}
+.rodape a { color: var(--bronze); text-decoration: none; }
+.rodape .num { font-family: var(--f-serif), Georgia, serif; font-size: 15pt; font-weight: 600; color: var(--tinta); white-space: nowrap; }
+.rodape .num span { font-size: 10pt; color: var(--suave); font-weight: 400; }
 
-.rodape { position: absolute; left: 12mm; right: 0; bottom: 6mm; text-align: right; font-size: 9pt; }
-.rodape .slogan { padding-right: 12mm; font-size: 9.5pt; }
-.rodape .linha { margin: 1.5mm 0 1.5mm 70mm; border-top: 1.4mm solid #ddd; }
-.rodape .dados { padding-right: 9mm; line-height: 1.35; }
-.rodape a { color: inherit; }
+.corpo { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-top: 5mm; }
 
-.corpo { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.secao-titulo { font-weight: 700; font-size: 12pt; margin: 5mm 0 3mm 3mm; }
+/* ---------- Elementos comuns ---------- */
+.secao { display: flex; align-items: baseline; gap: 3mm; margin: 6mm 0 3.5mm; padding-bottom: 1.5mm; border-bottom: 0.15mm solid var(--linha); font-weight: 400; }
+.corpo > .secao:first-child { margin-top: 0; }
+.secao .n { font-family: var(--f-serif), Georgia, serif; font-size: 15pt; font-weight: 600; color: var(--bronze); }
+.secao .pt { font-size: 9pt; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+.secao .en { font-family: var(--f-serif), Georgia, serif; font-size: 11pt; font-style: italic; color: var(--suave); }
 
-/* Capa */
-.ficha { display: grid; grid-template-columns: 1fr 82mm; gap: 6mm; margin-top: 8mm; }
-.ficha dl { margin: 0; font-size: 13.5pt; line-height: 1.75; }
-.ficha dt { display: inline; font-weight: 700; }
-.ficha dd { display: inline; margin: 0; }
-.ficha .linha-campo { display: block; }
-.ficha .foto { align-self: start; margin-top: 10mm; }
-.ficha .foto img { width: 100%; max-height: 60mm; object-fit: contain; object-position: top; }
-.divisor { border-top: 1.2mm solid #eee; margin: 10mm -12mm 0; }
-.estado { margin: 22mm 0 0 10mm; font-size: 12.5pt; }
-.estado span { margin-right: 4mm; }
-.comentarios { margin: 8mm 0 0 15mm; font-size: 12.5pt; }
-.comentarios b { display: block; }
-.comentarios p { margin: 1mm 0 0; white-space: pre-wrap; }
-.exame { margin: auto 0 0 15mm; font-size: 12pt; font-weight: 700; line-height: 1.6; }
-.assin { display: grid; grid-template-columns: 1fr 1fr; gap: 15mm; margin: 4mm 6mm 2mm 28mm; font-size: 11pt; font-weight: 700; text-align: center; }
-.assin .lin { height: 18mm; border-bottom: 0.3mm solid #000; display: flex; align-items: flex-end; justify-content: center; }
-.assin .lin img { max-height: 20mm; max-width: 70mm; margin-bottom: -3mm; mix-blend-mode: multiply; }
-.assin .cap { margin-top: 2mm; font-weight: 700; }
+.rot { font-size: 7pt; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--suave); margin-bottom: 1mm; }
+.rot span { font-weight: 400; letter-spacing: 0.04em; text-transform: none; font-style: italic; }
 
-/* Fotos */
-.fv { display: flex; flex-direction: column; align-items: center; gap: 1.5mm; margin-top: 3mm; }
-.fv img { width: 160mm; height: 88mm; object-fit: contain; }
-.fv .cap { font-size: 12pt; margin-bottom: 2mm; }
-.grade { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 62mm; gap: 3mm 8mm; margin-top: 5mm; }
-.grade figure { margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 0; }
-.grade img { width: 100%; flex: 1; min-height: 0; object-fit: contain; }
-.grade figcaption { font-size: 10.5pt; text-align: center; margin-top: 1.5mm; line-height: 1.2; }
-.legenda-pagina { text-align: center; font-size: 12pt; margin-top: 6mm; }
+.cb { display: inline-block; flex-shrink: 0; width: 3.2mm; height: 3.2mm; border: 0.25mm solid var(--tinta); border-radius: 0.4mm; position: relative; vertical-align: -0.5mm; box-sizing: border-box; }
+.cb.on { background: var(--bronze); border-color: var(--bronze); }
+.cb.on::after { content: ""; position: absolute; left: 0.95mm; top: 0.25mm; width: 0.8mm; height: 1.7mm; border: solid #fff; border-width: 0 0.35mm 0.35mm 0; transform: rotate(45deg); }
 
-/* Danos */
-.danos-foto { display: flex; justify-content: center; margin-top: 4mm; }
-.danos-foto img { width: 160mm; height: 84mm; object-fit: contain; }
-.glossario { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 4mm; margin-top: 4mm; font-size: 9.6pt; line-height: 1.38; }
-.glossario .t { padding-left: 5.5mm; text-indent: -5.5mm; }
-.glossario .on { font-weight: 700; }
-.glossario .on .n { border: 0.5mm solid #d00; border-radius: 50%; padding: 0 0.8mm; margin-left: -1.3mm; }
+figure { margin: 0; display: flex; flex-direction: column; min-height: 0; }
+.quadro { flex: 1; min-height: 0; background: var(--papel); display: flex; align-items: center; justify-content: center; padding: 2mm; box-sizing: border-box; }
+.quadro img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+figcaption { font-size: 8pt; margin-top: 1.5mm; line-height: 1.3; min-height: 3.5mm; }
+figcaption .fig { font-weight: 600; color: var(--bronze); margin-right: 2mm; letter-spacing: 0.04em; }
 
-/* Embalagem */
-.emb-fotos { display: flex; justify-content: center; gap: 8mm; margin-top: 2mm; }
-.emb-fotos img { width: 85mm; height: 105mm; object-fit: contain; }
-.checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8mm; margin: auto 0 0 8mm; font-size: 10.5pt; font-weight: 700; line-height: 1.45; }
-.checklist .mk { display: inline-block; width: 8mm; }
-.outros { grid-column: 2; margin-top: 3mm; }
+/* ---------- Capa ---------- */
+.ficha { display: grid; grid-template-columns: 1fr 74mm; gap: 7mm; }
+.ficha dl { margin: 0; }
+.ficha .campo { display: grid; grid-template-columns: 40mm 1fr; gap: 3mm; padding: 2.4mm 0; border-bottom: 0.15mm dotted var(--linha); align-items: baseline; }
+.ficha .campo:last-child { border-bottom: 0; }
+.ficha dt { font-size: 7pt; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--suave); }
+.ficha dt span { font-weight: 400; letter-spacing: 0.02em; text-transform: none; font-style: italic; }
+.ficha dd { margin: 0; font-size: 10.5pt; }
+.ficha .foto { height: 76mm; background: var(--papel); display: flex; align-items: center; justify-content: center; padding: 2.5mm; box-sizing: border-box; color: var(--suave); font-size: 8pt; }
+.ficha .foto img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.estado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+.estado .opcao { display: flex; align-items: center; gap: 2.5mm; padding: 2.5mm 3mm; border: 0.2mm solid var(--linha); border-radius: 1mm; font-size: 10pt; }
+.estado .opcao i { color: var(--suave); }
+.estado .opcao.on { border-color: var(--bronze); background: var(--papel); font-weight: 600; }
+.estado .opcao.on i { font-weight: 400; }
+
+.comentarios { margin-top: 3mm; padding: 3mm 4mm; min-height: 30mm; box-sizing: border-box; background: var(--papel); border-left: 0.6mm solid var(--bronze); }
+.comentarios p { margin: 0; white-space: pre-wrap; font-size: 10pt; }
+
+.exame { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5mm; font-size: 10.5pt; }
+
+.assin { display: grid; grid-template-columns: 1fr 1fr; gap: 14mm; margin: auto 4mm 6mm; text-align: center; }
+.assin .lin { height: 20mm; border-bottom: 0.25mm solid var(--tinta); display: flex; align-items: flex-end; justify-content: center; }
+.assin .lin img { max-height: 22mm; max-width: 70mm; margin-bottom: -3mm; mix-blend-mode: multiply; }
+.assin .cap { margin-top: 1.8mm; font-size: 8pt; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.assin .cap span { font-weight: 400; letter-spacing: 0.02em; text-transform: none; font-style: italic; color: var(--suave); }
+
+/* ---------- Fotos ---------- */
+.fv { flex: 1; min-height: 0; display: grid; grid-template-rows: 1fr 1fr; gap: 5mm; margin-bottom: 5mm; }
+.fv:has(> figure:only-child) { grid-template-rows: 1fr; }
+.grade { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 66mm); gap: 4mm 6mm; }
+
+/* ---------- Danos ---------- */
+.danos-foto { height: 74mm; background: var(--papel); display: flex; justify-content: center; align-items: center; padding: 2mm; box-sizing: border-box; }
+.danos-foto img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.marcados { margin-top: 4mm; }
+.marcados ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 1.5mm 2mm; }
+.marcados li { border: 0.2mm solid var(--bronze); background: var(--papel); border-radius: 4mm; padding: 0.6mm 3mm 0.6mm 1mm; font-size: 8.5pt; }
+.marcados li b { display: inline-block; min-width: 4.6mm; text-align: center; background: var(--bronze); color: #fff; border-radius: 3mm; padding: 0 1mm; margin-right: 1.2mm; font-size: 7.5pt; }
+.marcados li i, .glossario i { color: var(--suave); }
+.marcados p { margin: 0; font-style: italic; color: var(--suave); }
+.glossario-tit { margin-top: 4mm; }
+.glossario { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 4mm; font-size: 7.6pt; line-height: 1.42; }
+.glossario .t { padding-left: 6mm; text-indent: -6mm; }
+.glossario .n { display: inline-block; width: 6mm; text-indent: 0; color: var(--suave); }
+.glossario .on { font-weight: 600; color: var(--bronze); }
+.glossario .on .n { color: var(--bronze); }
+.glossario .on i { color: var(--bronze); font-weight: 400; }
+
+/* ---------- Embalagem ---------- */
+.emb-fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; height: 100mm; }
+.emb-fotos.uma { grid-template-columns: 1fr; }
+.checklist-tit { margin-top: 5mm; }
+.checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8mm; font-size: 9pt; }
+.checklist > div > div { display: flex; align-items: center; gap: 2.5mm; padding: 1.1mm 0; border-bottom: 0.15mm dotted var(--linha); }
+.checklist i { color: var(--suave); }
+.checklist .on { font-weight: 600; }
+.checklist .on i { font-weight: 400; }
 
 @media print {
   @page { size: A4; margin: 0; }
